@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drag and Drop Media Player</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+    #dropZone {
+      width: 300px;
+      height: 200px;
+      border: 2px dashed #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background-color: #fff;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+    #dropZone.dragover {
+      background-color: #e0e0e0;
+    }
+    #mediaPlayer {
+      max-width: 100%;
+      max-height: 400px;
+    }
+    #error {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Drag and Drop Media Player</h1>
+  <div id="dropZone">Drag & Drop Media File Here<br>or Click to Choose</div>
+  <input type="file" id="fileInput" accept="audio/*,video/*" style="display: none;">
+  <video id="mediaPlayer" controls style="display: none;"></video>
+  <audio id="audioPlayer" controls style="display: none;"></audio>
+  <div id="error"></div>
+
+  <script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const videoPlayer = document.getElementById('mediaPlayer');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const errorDiv = document.getElementById('error');
+
+    // Handle drag and drop events
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      handleFile(file);
+    });
+
+    // Allow clicking to choose file
+    dropZone.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      handleFile(file);
+    });
+
+    function handleFile(file) {
+      if (!file) return;
+
+      // Clear previous error
+      errorDiv.textContent = '';
+
+      // Check if file is audio or video
+      const isVideo = file.type.startsWith('video/');
+      const isAudio = file.type.startsWith('audio/');
+
+      if (!isVideo && !isAudio) {
+        errorDiv.textContent = 'Please upload a valid audio or video file.';
+        return;
+      }
+
+      // Create URL for the file
+      const fileURL = URL.createObjectURL(file);
+
+      // Reset players
+      videoPlayer.style.display = 'none';
+      audioPlayer.style.display = 'none';
+      videoPlayer.src = '';
+      audioPlayer.src = '';
+
+      // Set up appropriate player
+      if (isVideo) {
+        videoPlayer.src = fileURL;
+        videoPlayer.style.display = 'block';
+        videoPlayer.play();
+      } else if (isAudio) {
+        audioPlayer.src = fileURL;
+        audioPlayer.style.display = 'block';
+        audioPlayer.play();
+      }
+    }
+  </script>
+</body>
+</html>
