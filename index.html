@@ -302,7 +302,7 @@
             transform: scale(0.95);
         }
         
-        /* Play/Pause specific */
+        /* Play/Pause specific - more prominent */
         #playPauseBtnOverlay {
             background: rgba(59, 158, 255, 0.2);
             color: #3b9eff;
@@ -475,7 +475,6 @@
                 <div class="control-bar">
                     <div class="control-group">
                         <button class="control-btn" id="playPauseBtnOverlay" title="Play/Pause (Space)">▶</button>
-                        <button class="control-btn" id="pauseBtn" title="Pause">⏸</button>
                         <button class="control-btn" id="stopBtn" title="Stop">⏹</button>
                         <button class="control-btn" id="restartBtn" title="Restart">↺</button>
                     </div>
@@ -516,7 +515,6 @@
             
             // Control buttons
             const playPauseBtn = document.getElementById('playPauseBtnOverlay');
-            const pauseBtn = document.getElementById('pauseBtn');
             const stopBtn = document.getElementById('stopBtn');
             const restartBtn = document.getElementById('restartBtn');
             const muteBtn = document.getElementById('muteBtnOverlay');
@@ -561,7 +559,6 @@
             
             // Player controls
             playPauseBtn.addEventListener('click', togglePlayPause);
-            pauseBtn.addEventListener('click', pauseVideo);
             stopBtn.addEventListener('click', stopVideo);
             restartBtn.addEventListener('click', restartVideo);
             muteBtn.addEventListener('click', toggleMute);
@@ -659,11 +656,6 @@
                 showControls();
             }
             
-            function pauseVideo() {
-                mediaElement.pause();
-                showControls();
-            }
-            
             function stopVideo() {
                 mediaElement.pause();
                 mediaElement.currentTime = 0;
@@ -677,6 +669,7 @@
             }
             
             function updatePlayPauseIcon() {
+                // Toggle between play (▶) and pause (⏸) icons
                 playPauseBtn.textContent = mediaElement.paused ? '▶' : '⏸';
             }
             
