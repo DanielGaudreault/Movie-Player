@@ -96,103 +96,191 @@
             display: block;
         }
         
-        .controls {
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .progress-container {
-            width: 100%;
-            height: 10px;
-            background: #444;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-bottom: 5px;
-        }
-        
-        .progress {
-            height: 100%;
-            background: #1e90ff;
-            border-radius: 5px;
-            width: 0%;
-            position: relative;
-        }
-        
-        .progress::after {
-            content: '';
+        /* Custom controls overlay */
+        .custom-controls {
             position: absolute;
-            right: -5px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 10px;
-            height: 10px;
-            background: #fff;
-            border-radius: 50%;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .video-container:hover .custom-controls,
+        .video-container:focus-within .custom-controls,
+        .custom-controls.force-show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        /* Fullscreen specific styles */
+        video:fullscreen + .custom-controls,
+        :-webkit-full-screen video + .custom-controls,
+        :-moz-full-screen video + .custom-controls,
+        :fullscreen video + .custom-controls {
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            padding: 30px;
+        }
+        
+        video:fullscreen .custom-controls,
+        :-webkit-full-screen .custom-controls,
+        :-moz-full-screen .custom-controls,
+        :fullscreen .custom-controls {
+            opacity: 1; /* Start visible then fade */
+        }
+        
+        /* Progress bar container - always visible in fullscreen */
+        .fullscreen-progress {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 9999;
+            pointer-events: none;
             opacity: 0;
             transition: opacity 0.2s;
         }
         
-        .progress-container:hover .progress::after {
-            opacity: 1;
+        .fullscreen-progress .progress-fill {
+            height: 100%;
+            background: #1e90ff;
+            width: 0%;
+            transition: width 0.1s linear;
         }
         
-        .buttons {
+        /* Show fullscreen progress when video is fullscreen and controls are hidden */
+        video:fullscreen ~ .fullscreen-progress,
+        :-webkit-full-screen video ~ .fullscreen-progress,
+        :-moz-full-screen video ~ .fullscreen-progress,
+        :fullscreen video ~ .fullscreen-progress {
+            opacity: 1;
+            pointer-events: none;
+        }
+        
+        /* Control buttons */
+        .control-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 15px;
         }
         
-        .left-buttons, .right-buttons {
+        .control-group {
             display: flex;
             align-items: center;
             gap: 15px;
         }
         
-        button {
+        .control-btn {
             background: none;
             border: none;
-            color: #fff;
+            color: white;
+            font-size: 1.2rem;
             cursor: pointer;
-            font-size: 16px;
-            transition: color 0.2s;
-        }
-        
-        button:hover {
-            color: #1e90ff;
-        }
-        
-        button:focus {
-            outline: none;
-        }
-        
-        .time {
-            font-size: 14px;
-            color: #aaa;
-        }
-        
-        .volume-container {
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
         
-        .volume-slider {
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #1e90ff;
+            transform: scale(1.1);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .time-display {
+            color: white;
+            font-size: 0.9rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        /* Volume slider */
+        .volume-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .volume-slider-overlay {
             width: 80px;
             height: 5px;
-            background: #444;
+            background: rgba(255, 255, 255, 0.3);
             border-radius: 5px;
             cursor: pointer;
+            position: relative;
         }
         
-        .volume-progress {
+        .volume-fill {
             height: 100%;
             background: #1e90ff;
             border-radius: 5px;
             width: 100%;
+            pointer-events: none;
         }
         
+        /* Progress bar overlay */
+        .progress-overlay {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .progress-fill-overlay {
+            height: 100%;
+            background: #1e90ff;
+            border-radius: 3px;
+            width: 0%;
+            position: relative;
+            transition: width 0.1s linear;
+        }
+        
+        .progress-fill-overlay::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 0 0 10px #1e90ff;
+        }
+        
+        .progress-overlay:hover .progress-fill-overlay::after {
+            opacity: 1;
+        }
+        
+        /* Original controls (hide them, we're using overlay now) */
+        .controls {
+            display: none;
+        }
+        
+        /* Drop area */
         .drop-area {
             border: 3px dashed #444;
             border-radius: 10px;
@@ -237,10 +325,6 @@
             color: #aaa;
         }
         
-        .fullscreen-btn {
-            margin-left: auto;
-        }
-        
         /* Fullscreen styles */
         video:fullscreen {
             object-fit: contain;
@@ -271,18 +355,18 @@
         }
         
         @media (max-width: 600px) {
-            .buttons {
-                flex-wrap: wrap;
+            .control-group {
+                gap: 8px;
             }
             
-            .right-buttons {
-                width: 100%;
-                justify-content: space-between;
-                margin-top: 10px;
+            .control-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
             }
             
-            .volume-container {
-                order: 1;
+            .volume-slider-overlay {
+                width: 50px;
             }
             
             .site-header {
@@ -311,27 +395,44 @@
     </div>
     
     <div class="player-container" id="playerContainer" style="display: none;">
-        <div class="video-container">
+        <div class="video-container" id="videoContainer">
             <video id="mediaElement"></video>
-        </div>
-        <div class="controls">
-            <div class="progress-container" id="progressContainer">
-                <div class="progress" id="progress"></div>
-            </div>
-            <div class="buttons">
-                <div class="left-buttons">
-                    <button id="playPauseBtn" title="Play/Pause">▶</button>
-                    <button id="muteBtn" title="Mute">🔊</button>
-                    <div class="volume-container">
-                        <div class="volume-slider" id="volumeSlider">
-                            <div class="volume-progress" id="volumeProgress"></div>
+            
+            <!-- Custom controls overlay -->
+            <div class="custom-controls" id="customControls">
+                <!-- Progress bar -->
+                <div class="progress-overlay" id="progressOverlay">
+                    <div class="progress-fill-overlay" id="progressFillOverlay"></div>
+                </div>
+                
+                <!-- Control buttons -->
+                <div class="control-bar">
+                    <div class="control-group">
+                        <button class="control-btn" id="playPauseBtnOverlay" title="Play/Pause (Space)">▶</button>
+                        <button class="control-btn" id="stopBtn" title="Stop">⏹</button>
+                        <button class="control-btn" id="prevBtn" title="Previous (or restart)">⏮</button>
+                        <button class="control-btn" id="nextBtn" title="Next (or restart)">⏭</button>
+                    </div>
+                    
+                    <div class="control-group">
+                        <div class="time-display" id="timeDisplayOverlay">00:00 / 00:00</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <button class="control-btn" id="muteBtnOverlay" title="Mute (M)">🔊</button>
+                        <div class="volume-wrapper">
+                            <div class="volume-slider-overlay" id="volumeSliderOverlay">
+                                <div class="volume-fill" id="volumeFillOverlay"></div>
+                            </div>
                         </div>
+                        <button class="control-btn" id="fullscreenBtnOverlay" title="Fullscreen (F)">⛶</button>
                     </div>
                 </div>
-                <div class="time" id="timeDisplay">00:00 / 00:00</div>
-                <div class="right-buttons">
-                    <button id="fullscreenBtn" title="Fullscreen" class="fullscreen-btn">⛶</button>
-                </div>
+            </div>
+            
+            <!-- Tiny progress bar for fullscreen when controls hide -->
+            <div class="fullscreen-progress" id="fullscreenProgress">
+                <div class="progress-fill" id="fullscreenProgressFill"></div>
             </div>
         </div>
     </div>
@@ -344,14 +445,33 @@
             const fileInfo = document.getElementById('fileInfo');
             const playerContainer = document.getElementById('playerContainer');
             const mediaElement = document.getElementById('mediaElement');
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            const muteBtn = document.getElementById('muteBtn');
-            const progressContainer = document.getElementById('progressContainer');
-            const progress = document.getElementById('progress');
-            const volumeSlider = document.getElementById('volumeSlider');
-            const volumeProgress = document.getElementById('volumeProgress');
-            const timeDisplay = document.getElementById('timeDisplay');
-            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const videoContainer = document.getElementById('videoContainer');
+            const customControls = document.getElementById('customControls');
+            
+            // Control buttons
+            const playPauseBtn = document.getElementById('playPauseBtnOverlay');
+            const stopBtn = document.getElementById('stopBtn');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const muteBtn = document.getElementById('muteBtnOverlay');
+            const fullscreenBtn = document.getElementById('fullscreenBtnOverlay');
+            
+            // Progress elements
+            const progressOverlay = document.getElementById('progressOverlay');
+            const progressFillOverlay = document.getElementById('progressFillOverlay');
+            const fullscreenProgress = document.getElementById('fullscreenProgress');
+            const fullscreenProgressFill = document.getElementById('fullscreenProgressFill');
+            
+            // Volume elements
+            const volumeSliderOverlay = document.getElementById('volumeSliderOverlay');
+            const volumeFillOverlay = document.getElementById('volumeFillOverlay');
+            
+            // Time display
+            const timeDisplay = document.getElementById('timeDisplayOverlay');
+            
+            // State
+            let hideControlsTimeout;
+            let isFullscreen = false;
             
             // Prevent default drag behaviors
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -376,10 +496,21 @@
             
             // Player controls
             playPauseBtn.addEventListener('click', togglePlayPause);
+            stopBtn.addEventListener('click', stopVideo);
+            prevBtn.addEventListener('click', restartVideo);
+            nextBtn.addEventListener('click', restartVideo);
             muteBtn.addEventListener('click', toggleMute);
-            progressContainer.addEventListener('click', seek);
-            volumeSlider.addEventListener('click', changeVolume);
+            progressOverlay.addEventListener('click', seek);
+            volumeSliderOverlay.addEventListener('click', changeVolume);
             fullscreenBtn.addEventListener('click', toggleFullscreen);
+            
+            // Mouse movement detection for controls
+            videoContainer.addEventListener('mousemove', showControls);
+            videoContainer.addEventListener('mouseleave', () => {
+                if (!mediaElement.paused && isFullscreen) {
+                    scheduleHideControls();
+                }
+            });
             
             // Media element events
             mediaElement.addEventListener('play', updatePlayPauseIcon);
@@ -432,7 +563,24 @@
                     
                     // Load the media
                     mediaElement.load();
+                    mediaElement.play(); // Auto-play
                 }
+            }
+            
+            function showControls() {
+                customControls.classList.add('force-show');
+                clearTimeout(hideControlsTimeout);
+                
+                if (!mediaElement.paused && isFullscreen) {
+                    scheduleHideControls();
+                }
+            }
+            
+            function scheduleHideControls() {
+                clearTimeout(hideControlsTimeout);
+                hideControlsTimeout = setTimeout(() => {
+                    customControls.classList.remove('force-show');
+                }, 3000);
             }
             
             function togglePlayPause() {
@@ -441,6 +589,21 @@
                 } else {
                     mediaElement.pause();
                 }
+                showControls();
+            }
+            
+            function stopVideo() {
+                mediaElement.pause();
+                mediaElement.currentTime = 0;
+                showControls();
+            }
+            
+            function restartVideo() {
+                mediaElement.currentTime = 0;
+                if (mediaElement.paused) {
+                    mediaElement.play();
+                }
+                showControls();
             }
             
             function updatePlayPauseIcon() {
@@ -449,45 +612,63 @@
             
             function toggleMute() {
                 mediaElement.muted = !mediaElement.muted;
+                showControls();
             }
             
             function updateVolumeIcon() {
                 if (mediaElement.muted || mediaElement.volume === 0) {
                     muteBtn.textContent = '🔇';
+                } else if (mediaElement.volume < 0.5) {
+                    muteBtn.textContent = '🔉';
                 } else {
                     muteBtn.textContent = '🔊';
                 }
             }
             
             function seek(e) {
-                const percent = e.offsetX / progressContainer.offsetWidth;
+                const rect = progressOverlay.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
                 mediaElement.currentTime = percent * mediaElement.duration;
+                showControls();
             }
             
             function updateProgress() {
-                const percent = (mediaElement.currentTime / mediaElement.duration) * 100;
-                progress.style.width = `${percent}%`;
+                if (mediaElement.duration) {
+                    const percent = (mediaElement.currentTime / mediaElement.duration) * 100;
+                    progressFillOverlay.style.width = `${percent}%`;
+                    fullscreenProgressFill.style.width = `${percent}%`;
+                }
             }
             
             function changeVolume(e) {
-                const percent = e.offsetX / volumeSlider.offsetWidth;
-                mediaElement.volume = percent;
+                const rect = volumeSliderOverlay.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                mediaElement.volume = Math.min(1, Math.max(0, percent));
                 mediaElement.muted = false;
+                showControls();
             }
             
             function updateVolumeSlider() {
                 const percent = mediaElement.muted ? 0 : mediaElement.volume * 100;
-                volumeProgress.style.width = `${percent}%`;
+                volumeFillOverlay.style.width = `${percent}%`;
             }
             
             function formatTime(seconds) {
-                const minutes = Math.floor(seconds / 60);
-                seconds = Math.floor(seconds % 60);
-                return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                if (!isFinite(seconds)) return '00:00';
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const secs = Math.floor(seconds % 60);
+                
+                if (hours > 0) {
+                    return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                }
+                return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             }
             
             function updateTimeDisplay() {
-                timeDisplay.textContent = `${formatTime(mediaElement.currentTime)} / ${formatTime(mediaElement.duration)}`;
+                const current = mediaElement.currentTime || 0;
+                const duration = mediaElement.duration || 0;
+                timeDisplay.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
             }
             
             function initializePlayer() {
@@ -495,45 +676,86 @@
                 updateVolumeIcon();
                 updateVolumeSlider();
                 updateTimeDisplay();
+                updateProgress();
             }
             
             function toggleFullscreen() {
-                // Try to make the video element fullscreen, not the container
                 if (!document.fullscreenElement) {
-                    if (mediaElement.requestFullscreen) {
-                        mediaElement.requestFullscreen();
-                    } else if (mediaElement.webkitRequestFullscreen) { /* Safari */
-                        mediaElement.webkitRequestFullscreen();
-                    } else if (mediaElement.msRequestFullscreen) { /* IE11 */
-                        mediaElement.msRequestFullscreen();
+                    if (videoContainer.requestFullscreen) {
+                        videoContainer.requestFullscreen();
+                    } else if (videoContainer.webkitRequestFullscreen) {
+                        videoContainer.webkitRequestFullscreen();
+                    } else if (videoContainer.msRequestFullscreen) {
+                        videoContainer.msRequestFullscreen();
                     }
                 } else {
                     if (document.exitFullscreen) {
                         document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) { /* Safari */
+                    } else if (document.webkitExitFullscreen) {
                         document.webkitExitFullscreen();
-                    } else if (document.msExitFullscreen) { /* IE11 */
+                    } else if (document.msExitFullscreen) {
                         document.msExitFullscreen();
                     }
                 }
             }
             
             function handleFullscreenChange() {
-                if (document.fullscreenElement === mediaElement) {
-                    console.log('Video is now fullscreen');
-                    // You can add any fullscreen-specific UI changes here
+                isFullscreen = !!document.fullscreenElement;
+                
+                if (isFullscreen) {
+                    // Show controls briefly when entering fullscreen
+                    showControls();
                 } else {
-                    console.log('Exited fullscreen');
+                    // Clear any pending hide timeout
+                    clearTimeout(hideControlsTimeout);
+                    customControls.classList.remove('force-show');
                 }
             }
             
             function handleMediaEnded() {
-                // Reset player when media ends
-                setTimeout(() => {
-                    mediaElement.currentTime = 0;
-                    playPauseBtn.textContent = '▶';
-                }, 1000);
+                playPauseBtn.textContent = '▶';
+                showControls();
             }
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (playerContainer.style.display === 'none') return;
+                
+                const tag = e.target.tagName.toLowerCase();
+                if (tag === 'input' || tag === 'textarea') return;
+                
+                switch (e.key.toLowerCase()) {
+                    case ' ':
+                    case 'k':
+                        e.preventDefault();
+                        togglePlayPause();
+                        break;
+                    case 'm':
+                        e.preventDefault();
+                        toggleMute();
+                        break;
+                    case 'f':
+                        e.preventDefault();
+                        toggleFullscreen();
+                        break;
+                    case 'arrowleft':
+                        e.preventDefault();
+                        mediaElement.currentTime -= 10;
+                        break;
+                    case 'arrowright':
+                        e.preventDefault();
+                        mediaElement.currentTime += 10;
+                        break;
+                    case 'arrowup':
+                        e.preventDefault();
+                        mediaElement.volume = Math.min(1, mediaElement.volume + 0.1);
+                        break;
+                    case 'arrowdown':
+                        e.preventDefault();
+                        mediaElement.volume = Math.max(0, mediaElement.volume - 0.1);
+                        break;
+                }
+            });
         });
     </script>
 </body>
