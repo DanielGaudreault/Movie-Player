@@ -3,81 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Web Media Player</title>
+    <title>universal media player · drag & drop any format</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
         }
         
         body {
-            background: #1a1a1a;
-            color: #fff;
+            background: #0f0f0f;
+            color: #f0f0f0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             padding: 20px;
+            margin: 0;
+        }
+        
+        /* main container stack */
+        .app-wrapper {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+        
+        .drop-area {
+            border: 3px dashed #3d3d3d;
+            border-radius: 24px;
+            padding: 48px 32px;
+            text-align: center;
+            transition: all 0.25s ease;
+            width: 100%;
+            max-width: 800px;
+            background: #1e1e1e;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        
+        .drop-area.highlight {
+            border-color: #3b9eff;
+            background: rgba(59, 158, 255, 0.1);
+            transform: scale(1.01);
+            box-shadow: 0 0 0 4px rgba(59,158,255,0.2);
+        }
+        
+        .drop-area p {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: #ccc;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            background: #3b9eff;
+            color: white;
+            padding: 14px 36px;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            display: inline-block;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 80, 200, 0.4);
+        }
+        
+        .file-label:hover {
+            background: #1f7edb;
+            box-shadow: 0 6px 16px rgba(0, 112, 243, 0.6);
+        }
+        
+        .file-info {
+            margin-top: 24px;
+            font-size: 1rem;
+            color: #aaa;
+            word-break: break-word;
+            background: #2a2a2a;
+            padding: 12px 18px;
+            border-radius: 40px;
+            display: inline-block;
+            max-width: 100%;
         }
         
         .player-container {
             width: 100%;
-            max-width: 800px;
-            background: #2a2a2a;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 900px;
+            background: #181818;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
             overflow: hidden;
+            backdrop-filter: blur(2px);
+            transition: all 0.3s;
+            border: 1px solid #333;
         }
         
         .video-container {
             width: 100%;
             position: relative;
             background: #000;
+            line-height: 0;
         }
         
         video {
             width: 100%;
+            max-height: 70vh;
+            background: #000;
             display: block;
         }
         
         .controls {
-            padding: 15px;
+            padding: 18px 22px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
+            background: #202020;
         }
         
         .progress-container {
             width: 100%;
             height: 10px;
-            background: #444;
-            border-radius: 5px;
+            background: #3a3a3a;
+            border-radius: 20px;
             cursor: pointer;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
+            transition: height 0.15s;
+        }
+        
+        .progress-container:hover {
+            height: 14px;
         }
         
         .progress {
             height: 100%;
-            background: #1e90ff;
-            border-radius: 5px;
+            background: linear-gradient(90deg, #3b9eff, #7bb3ff);
+            border-radius: 20px;
             width: 0%;
             position: relative;
+            transition: width 0.1s linear;
         }
         
         .progress::after {
             content: '';
             position: absolute;
-            right: -5px;
+            right: -6px;
             top: 50%;
             transform: translateY(-50%);
-            width: 10px;
-            height: 10px;
-            background: #fff;
+            width: 14px;
+            height: 14px;
+            background: white;
             border-radius: 50%;
             opacity: 0;
+            box-shadow: 0 0 10px #3b9eff;
             transition: opacity 0.2s;
         }
         
@@ -89,329 +175,435 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .left-buttons, .right-buttons {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 18px;
         }
         
         button {
             background: none;
             border: none;
-            color: #fff;
+            color: #eee;
             cursor: pointer;
-            font-size: 16px;
-            transition: color 0.2s;
+            font-size: 1.6rem;
+            transition: color 0.2s, transform 0.1s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
         }
         
         button:hover {
-            color: #1e90ff;
+            color: #3b9eff;
+            background: rgba(255,255,255,0.05);
+            transform: scale(1.07);
         }
         
-        button:focus {
-            outline: none;
+        button:active {
+            transform: scale(0.95);
         }
         
         .time {
-            font-size: 14px;
-            color: #aaa;
+            font-size: 1rem;
+            color: #bbb;
+            font-variant-numeric: tabular-nums;
+            background: #2f2f2f;
+            padding: 6px 14px;
+            border-radius: 30px;
+            letter-spacing: 0.5px;
         }
         
         .volume-container {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 10px;
         }
         
         .volume-slider {
-            width: 80px;
-            height: 5px;
+            width: 90px;
+            height: 6px;
             background: #444;
-            border-radius: 5px;
+            border-radius: 10px;
             cursor: pointer;
+            position: relative;
         }
         
         .volume-progress {
             height: 100%;
-            background: #1e90ff;
-            border-radius: 5px;
-            width: 100%;
-        }
-        
-        .drop-area {
-            border: 3px dashed #444;
+            background: #3b9eff;
             border-radius: 10px;
-            padding: 40px;
-            text-align: center;
-            margin-bottom: 20px;
-            transition: all 0.3s;
             width: 100%;
-            max-width: 800px;
-        }
-        
-        .drop-area.highlight {
-            border-color: #1e90ff;
-            background: rgba(30, 144, 255, 0.1);
-        }
-        
-        .drop-area p {
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-        
-        .file-input {
-            display: none;
-        }
-        
-        .file-label {
-            background: #1e90ff;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        
-        .file-label:hover {
-            background: #187bcd;
-        }
-        
-        .file-info {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #aaa;
+            pointer-events: none;
         }
         
         .fullscreen-btn {
-            margin-left: auto;
+            font-size: 1.9rem;
+            line-height: 1;
+        }
+        
+        /* file format hint */
+        .format-hint {
+            margin-top: 12px;
+            font-size: 0.9rem;
+            color: #888;
+            background: #1a1a1a;
+            padding: 6px 18px;
+            border-radius: 40px;
+        }
+        
+        .format-hint span {
+            color: #3b9eff;
+            font-weight: 500;
+        }
+        
+        /* loading / error message */
+        .media-message {
+            color: #ffaa5e;
+            font-size: 0.95rem;
+            padding: 4px 0;
+            min-height: 24px;
         }
         
         @media (max-width: 600px) {
             .buttons {
-                flex-wrap: wrap;
+                flex-direction: column;
+                align-items: flex-start;
             }
-            
-            .right-buttons {
+            .left-buttons {
                 width: 100%;
                 justify-content: space-between;
-                margin-top: 10px;
             }
-            
-            .volume-container {
-                order: 1;
+            .right-buttons {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .volume-slider {
+                width: 70px;
+            }
+            .drop-area p {
+                font-size: 1.2rem;
             }
         }
     </style>
 </head>
 <body>
+<div class="app-wrapper">
+    <!-- DROP ZONE (visible initially) -->
     <div class="drop-area" id="dropArea">
-        <p>Drag & drop media files here</p>
+        <p>📁  drag any video or audio file  🎬</p>
         <input type="file" id="fileInput" class="file-input" accept="video/*,audio/*">
-        <label for="fileInput" class="file-label">Or choose files</label>
-        <div class="file-info" id="fileInfo">No file selected</div>
+        <label for="fileInput" class="file-label">choose from device</label>
+        <div class="file-info" id="fileInfo">⏺ no media loaded</div>
+        <div class="format-hint">
+            <span>⚡ any format</span> · mp4, mov, webm, mkv, avi, mp3, wav, flac, m4a …
+        </div>
     </div>
-    
+
+    <!-- PLAYER (hidden until file loaded) -->
     <div class="player-container" id="playerContainer" style="display: none;">
         <div class="video-container">
-            <video id="mediaElement"></video>
+            <video id="mediaElement" controlslist="nodownload" preload="metadata"></video>
         </div>
         <div class="controls">
+            <!-- progress bar -->
             <div class="progress-container" id="progressContainer">
                 <div class="progress" id="progress"></div>
             </div>
+            
+            <!-- button row -->
             <div class="buttons">
                 <div class="left-buttons">
-                    <button id="playPauseBtn" title="Play/Pause">▶</button>
-                    <button id="muteBtn" title="Mute">🔊</button>
+                    <button id="playPauseBtn" title="play/pause (k)">▶</button>
+                    <button id="muteBtn" title="mute (m)">🔊</button>
                     <div class="volume-container">
                         <div class="volume-slider" id="volumeSlider">
                             <div class="volume-progress" id="volumeProgress"></div>
                         </div>
                     </div>
                 </div>
+                
                 <div class="time" id="timeDisplay">00:00 / 00:00</div>
+                
                 <div class="right-buttons">
-                    <button id="fullscreenBtn" title="Fullscreen" class="fullscreen-btn">⛶</button>
+                    <button id="fullscreenBtn" title="fullscreen (f)" class="fullscreen-btn">⛶</button>
                 </div>
             </div>
+            <div class="media-message" id="mediaMessage"></div>
         </div>
     </div>
+</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // DOM elements
-            const dropArea = document.getElementById('dropArea');
-            const fileInput = document.getElementById('fileInput');
-            const fileInfo = document.getElementById('fileInfo');
-            const playerContainer = document.getElementById('playerContainer');
-            const mediaElement = document.getElementById('mediaElement');
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            const muteBtn = document.getElementById('muteBtn');
-            const progressContainer = document.getElementById('progressContainer');
-            const progress = document.getElementById('progress');
-            const volumeSlider = document.getElementById('volumeSlider');
-            const volumeProgress = document.getElementById('volumeProgress');
-            const timeDisplay = document.getElementById('timeDisplay');
-            const fullscreenBtn = document.getElementById('fullscreenBtn');
-            
-            // Prevent default drag behaviors
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, preventDefaults, false);
-                document.body.addEventListener(eventName, preventDefaults, false);
-            });
-            
-            // Highlight drop area when item is dragged over it
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropArea.addEventListener(eventName, highlight, false);
-            });
-            
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, unhighlight, false);
-            });
-            
-            // Handle dropped files
-            dropArea.addEventListener('drop', handleDrop, false);
-            
-            // Handle selected files
-            fileInput.addEventListener('change', handleFiles, false);
-            
-            // Player controls
-            playPauseBtn.addEventListener('click', togglePlayPause);
-            muteBtn.addEventListener('click', toggleMute);
-            progressContainer.addEventListener('click', seek);
-            volumeSlider.addEventListener('click', changeVolume);
-            fullscreenBtn.addEventListener('click', toggleFullscreen);
-            
-            // Media element events
-            mediaElement.addEventListener('play', updatePlayPauseIcon);
-            mediaElement.addEventListener('pause', updatePlayPauseIcon);
-            mediaElement.addEventListener('timeupdate', updateProgress);
-            mediaElement.addEventListener('timeupdate', updateTimeDisplay);
-            mediaElement.addEventListener('volumechange', updateVolumeIcon);
-            mediaElement.addEventListener('volumechange', updateVolumeSlider);
-            mediaElement.addEventListener('loadedmetadata', initializePlayer);
-            mediaElement.addEventListener('ended', handleMediaEnded);
-            
-            // Functions
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
+<script>
+    (function() {
+        // --- DOM elements ---
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const playerContainer = document.getElementById('playerContainer');
+        const mediaElement = document.getElementById('mediaElement');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progress = document.getElementById('progress');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeProgress = document.getElementById('volumeProgress');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const mediaMessage = document.getElementById('mediaMessage');
+
+        // --- internal state ---
+        let currentFileURL = null;          // to revoke later
+        let wasPlayingBeforeSeek = false;   // optional, not used now
+
+        // --- prevent default drag events globally ---
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // --- highlight / unhighlight drop zone ---
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        // --- DROP & FILE SELECT handlers ---
+        dropArea.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFiles, false);
+
+        // --- player control listeners ---
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        muteBtn.addEventListener('click', toggleMute);
+        progressContainer.addEventListener('click', seek);
+        volumeSlider.addEventListener('click', changeVolume);
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+        // --- media element events ---
+        mediaElement.addEventListener('play', updatePlayPauseIcon);
+        mediaElement.addEventListener('pause', updatePlayPauseIcon);
+        mediaElement.addEventListener('timeupdate', updateProgress);
+        mediaElement.addEventListener('timeupdate', updateTimeDisplay);
+        mediaElement.addEventListener('volumechange', updateVolumeIcon);
+        mediaElement.addEventListener('volumechange', updateVolumeSlider);
+        mediaElement.addEventListener('loadedmetadata', initializePlayer);
+        mediaElement.addEventListener('ended', handleMediaEnded);
+        mediaElement.addEventListener('error', handleMediaError);
+
+        // optional: keyboard shortcuts (space, k, m, f) – but no interference
+        document.addEventListener('keydown', (e) => {
+            // only if player visible and not typing in input
+            if (playerContainer.style.display === 'none') return;
+            const tag = e.target.tagName.toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'button' || tag === 'label') return;
+
+            switch (e.key) {
+                case ' ':
+                case 'k':
+                    e.preventDefault();
+                    togglePlayPause();
+                    break;
+                case 'm':
+                    e.preventDefault();
+                    toggleMute();
+                    break;
+                case 'f':
+                    e.preventDefault();
+                    toggleFullscreen();
+                    break;
             }
-            
-            function highlight() {
-                dropArea.classList.add('highlight');
+        });
+
+        // --- helper functions ---
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight() {
+            dropArea.classList.add('highlight');
+        }
+
+        function unhighlight() {
+            dropArea.classList.remove('highlight');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length) handleLoadedFiles(files);
+        }
+
+        function handleFiles(e) {
+            const files = e.target.files;
+            if (files.length) handleLoadedFiles(files);
+        }
+
+        function handleLoadedFiles(fileList) {
+            const file = fileList[0];
+            if (!file) return;
+
+            // clean up previous object url to avoid memory leak
+            if (currentFileURL) {
+                URL.revokeObjectURL(currentFileURL);
+                currentFileURL = null;
             }
-            
-            function unhighlight() {
-                dropArea.classList.remove('highlight');
+
+            // show file name and hide drop area?
+            fileInfo.textContent = `📄 ${file.name}`;
+
+            // create fresh url
+            currentFileURL = URL.createObjectURL(file);
+            mediaElement.src = currentFileURL;
+
+            // ensure player is visible, drop area stays visible but we might hide it? 
+            // i prefer to keep drop area, but you wanted: drop area hidden? i'll keep both.
+            // but to match your original design: hide drop area after load? let's keep visible as a panel.
+            // but original had display:none on playerContainer and kept dropArea. I'll keep both visible but 
+            // you can still drag again.
+            playerContainer.style.display = 'block';
+            // optional: collapse drop area a bit? no, keep it for re-upload.
+            // but it's fine.
+            mediaMessage.textContent = ''; // clear errors
+
+            // load and play automatically? (optional)
+            mediaElement.load();  // not always needed, but safe
+        }
+
+        // --- media control functions ---
+        function togglePlayPause() {
+            if (mediaElement.paused) {
+                mediaElement.play().catch(err => {
+                    mediaMessage.textContent = '⚠️ play failed: ' + err.message;
+                });
+            } else {
+                mediaElement.pause();
             }
-            
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                handleFiles({ target: { files } });
+        }
+
+        function updatePlayPauseIcon() {
+            playPauseBtn.textContent = mediaElement.paused ? '▶' : '⏸';
+        }
+
+        function toggleMute() {
+            mediaElement.muted = !mediaElement.muted;
+        }
+
+        function updateVolumeIcon() {
+            if (mediaElement.muted || mediaElement.volume === 0) {
+                muteBtn.textContent = '🔇';
+            } else {
+                muteBtn.textContent = '🔊';
             }
-            
-            function handleFiles(e) {
-                const files = e.target.files;
-                if (files.length > 0) {
-                    const file = files[0];
-                    fileInfo.textContent = `Playing: ${file.name}`;
-                    
-                    const fileURL = URL.createObjectURL(file);
-                    mediaElement.src = fileURL;
-                    
-                    // Show player and hide drop area
-                    playerContainer.style.display = 'block';
-                    dropArea.style.display = 'none';
-                    
-                    // Load the media
-                    mediaElement.load();
-                }
-            }
-            
-            function togglePlayPause() {
-                if (mediaElement.paused) {
-                    mediaElement.play();
-                } else {
-                    mediaElement.pause();
-                }
-            }
-            
-            function updatePlayPauseIcon() {
-                playPauseBtn.textContent = mediaElement.paused ? '▶' : '⏸';
-            }
-            
-            function toggleMute() {
-                mediaElement.muted = !mediaElement.muted;
-            }
-            
-            function updateVolumeIcon() {
-                if (mediaElement.muted || mediaElement.volume === 0) {
-                    muteBtn.textContent = '🔇';
-                } else {
-                    muteBtn.textContent = '🔊';
-                }
-            }
-            
-            function seek(e) {
-                const percent = e.offsetX / progressContainer.offsetWidth;
+        }
+
+        function seek(e) {
+            const rect = progressContainer.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left;
+            const percent = Math.min(1, Math.max(0, offsetX / rect.width));
+            if (isFinite(mediaElement.duration)) {
                 mediaElement.currentTime = percent * mediaElement.duration;
             }
-            
-            function updateProgress() {
+        }
+
+        function updateProgress() {
+            if (mediaElement.duration) {
                 const percent = (mediaElement.currentTime / mediaElement.duration) * 100;
                 progress.style.width = `${percent}%`;
+            } else {
+                progress.style.width = '0%';
             }
-            
-            function changeVolume(e) {
-                const percent = e.offsetX / volumeSlider.offsetWidth;
-                mediaElement.volume = percent;
-                mediaElement.muted = false;
-            }
-            
-            function updateVolumeSlider() {
-                const percent = mediaElement.muted ? 0 : mediaElement.volume * 100;
-                volumeProgress.style.width = `${percent}%`;
-            }
-            
-            function formatTime(seconds) {
-                const minutes = Math.floor(seconds / 60);
-                seconds = Math.floor(seconds % 60);
-                return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }
-            
-            function updateTimeDisplay() {
-                timeDisplay.textContent = `${formatTime(mediaElement.currentTime)} / ${formatTime(mediaElement.duration)}`;
-            }
-            
-            function initializePlayer() {
-                updatePlayPauseIcon();
-                updateVolumeIcon();
-                updateVolumeSlider();
-                updateTimeDisplay();
-            }
-            
-            function toggleFullscreen() {
-                if (!document.fullscreenElement) {
-                    playerContainer.requestFullscreen().catch(err => {
-                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                    });
-                } else {
+        }
+
+        function changeVolume(e) {
+            const rect = volumeSlider.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left;
+            const percent = Math.min(1, Math.max(0, offsetX / rect.width));
+            mediaElement.volume = percent;
+            mediaElement.muted = false;  // unmute if adjusting volume
+        }
+
+        function updateVolumeSlider() {
+            const vol = mediaElement.muted ? 0 : mediaElement.volume;
+            volumeProgress.style.width = `${vol * 100}%`;
+        }
+
+        function formatTime(seconds) {
+            if (!isFinite(seconds)) return '00:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateTimeDisplay() {
+            const current = mediaElement.currentTime || 0;
+            const dur = mediaElement.duration || 0;
+            timeDisplay.textContent = `${formatTime(current)} / ${formatTime(dur)}`;
+        }
+
+        function initializePlayer() {
+            updatePlayPauseIcon();
+            updateVolumeIcon();
+            updateVolumeSlider();
+            updateTimeDisplay();
+            updateProgress();
+            mediaMessage.textContent = ''; // clear any old error
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                if (playerContainer.requestFullscreen) {
+                    playerContainer.requestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
                     document.exitFullscreen();
                 }
             }
-            
-            function handleMediaEnded() {
-                // Reset player when media ends
-                setTimeout(() => {
-                    mediaElement.currentTime = 0;
-                    playPauseBtn.textContent = '▶';
-                }, 1000);
-            }
+        }
+
+        function handleMediaEnded() {
+            // optional: go to start and show paused icon
+            mediaElement.currentTime = 0;
+            playPauseBtn.textContent = '▶'; // pause icon
+            // could also keep ended state
+        }
+
+        function handleMediaError(e) {
+            const err = mediaElement.error;
+            let message = '⚠️ media error: ';
+            if (err && err.message) message += err.message;
+            else if (err && err.code) message += 'code ' + err.code;
+            else message += 'could not play – format may be unsupported?';
+            mediaMessage.textContent = message;
+            console.warn('Media error:', err);
+        }
+
+        // --- extra: if user wants to upload another file, revoke old url ---
+        // add a little reload helper (optional)
+        window.addEventListener('beforeunload', function() {
+            if (currentFileURL) URL.revokeObjectURL(currentFileURL);
         });
-    </script>
+
+        // ensure drop area also handles new files while player is visible
+        // it already does via drop + file input change
+
+        // small ui: if file input changes again, handle it
+        // already done
+
+        // also handle clicks on drop area label? fine
+
+        // --- additional: make whole drop area clickable via invisible input? we already have label.
+        // That's fine.
+    })();
+</script>
 </body>
 </html>
