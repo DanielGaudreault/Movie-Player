@@ -187,6 +187,7 @@
             position: relative;
             background: #000;
             line-height: 0;
+            cursor: pointer; /* Indicate click-to-play/pause */
         }
         
         video, audio {
@@ -194,6 +195,7 @@
             max-height: 70vh;
             background: #000;
             display: block;
+            pointer-events: none; /* Let container handle clicks for play/pause */
         }
         
         /* Custom controls overlay - Premium */
@@ -393,12 +395,28 @@
             opacity: 0.7;
         }
         
-        /* Fullscreen video styles */
+        /* Fullscreen video styles - FORCE fullscreen */
         video:fullscreen {
             object-fit: contain;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            background: #000;
+        }
+        
+        :fullscreen .video-container {
             width: 100vw;
             height: 100vh;
             background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        :fullscreen video {
+            width: 100vw;
+            height: 100vh;
+            object-fit: contain;
         }
         
         :fullscreen .custom-controls {
@@ -455,14 +473,14 @@
             <img src="images/MyLogo.png" alt="Daniel Gaudreault Logo" class="logo-img" onerror="this.style.display='none'">
             <div class="site-title"><span>Movie</span> Player</div>
         </div>
-        <div class="version-badge">by Daniel Gaudreault · v3.0</div>
+        <div class="version-badge">by Daniel Gaudreault · v3.1</div>
     </div>
 
     <!-- Drop Zone -->
     <div class="drop-area" id="dropArea">
         <p>✨ Drag & drop any video or audio file</p>
-        <!-- Accept all file types: video/*, audio/*, and also common extensions (to be safe) -->
-        <input type="file" id="fileInput" class="file-input" accept="video/*,audio/*,.mp4,.mkv,.mov,.avi,.wmv,.flv,.webm,.mp3,.wav,.aac,.flac,.ogg,.m4a">
+        <!-- Accept all file types -->
+        <input type="file" id="fileInput" class="file-input" accept="video/*,audio/*,.mp4,.mkv,.mov,.avi,.wmv,.flv,.webm,.mp3,.wav,.aac,.flac,.ogg,.m4a,.wma,.aiff,.opus">
         <label for="fileInput" class="file-label">Choose Media</label>
         <div class="file-info" id="fileInfo">Ready to play (all formats supported)</div>
     </div>
@@ -470,7 +488,7 @@
     <!-- Player Container -->
     <div class="player-container" id="playerContainer" style="display: none;">
         <div class="video-container" id="videoContainer">
-            <!-- Using <video> also works for audio; audio will show a simple background -->
+            <!-- Using <video> also works for audio -->
             <video id="mediaElement"></video>
             
             <!-- Custom controls overlay -->
@@ -556,18 +574,13 @@
                 // Stop any playing media and clear source
                 mediaElement.pause();
                 mediaElement.removeAttribute('src');
-                mediaElement.load();  // prevent old media from lingering
+                mediaElement.load();
                 fileInfo.textContent = 'Ready to play (all formats supported)';
-                // Reset file input so same file can be re-selected if needed
                 fileInput.value = '';
-                // Clear any custom filename from drop area
             });
             
-            // ---------- ACCEPT ALL AUDIO/VIDEO FORMATS (already set by accept attribute + fallback) ----------
-            // We'll also enforce via code that any file can be loaded
-            fileInput.accept = '*/*'; // override to truly allow any file (but we keep visual hint)
-            // The original accept string covers most, but we'll dynamically update to be safe.
-            fileInput.setAttribute('accept', 'video/*,audio/*,.mp4,.mkv,.mov,.avi,.wmv,.flv,.webm,.mp3,.wav,.aac,.flac,.ogg,.m4a,.wma,.aiff,.opus');
+            // Allow any file type
+            fileInput.setAttribute('accept', '*/*');
             
             // Prevent default drag behaviors
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -598,6 +611,16 @@
             progressOverlay.addEventListener('click', seek);
             volumeSliderOverlay.addEventListener('click', changeVolume);
             fullscreenBtn.addEventListener('click', toggleFullscreen);
+            
+            // NEW: Click on video container toggles play/pause
+            videoContainer.addEventListener('click', (e) => {
+                // Only toggle if the click is directly on the container or video, not on controls
+                // But controls are inside the container and have pointer-events: all when visible
+                // We need to prevent toggling when clicking on controls
+                if (e.target === videoContainer || e.target === mediaElement) {
+                    togglePlayPause();
+                }
+            });
             
             // Mouse movement detection for controls
             videoContainer.addEventListener('mousemove', showControls);
@@ -661,9 +684,6 @@
                     mediaElement.play().catch(() => {
                         // Auto-play might be blocked, but that's ok
                     });
-                    
-                    // For audio files, the <video> element will still work (poster not needed)
-                    // but we might adjust UI if needed (already fine)
                 }
             }
             
@@ -778,7 +798,7 @@
             }
             
             function toggleFullscreen() {
-                // This toggles fullscreen on the video container
+                // FORCE fullscreen on the video container
                 if (!document.fullscreenElement) {
                     if (videoContainer.requestFullscreen) {
                         videoContainer.requestFullscreen();
@@ -803,6 +823,7 @@
                 
                 if (isFullscreen) {
                     showControls();
+                    // Ensure video fills the screen (CSS already handles)
                 } else {
                     clearTimeout(hideControlsTimeout);
                     customControls.classList.remove('force-show');
@@ -853,8 +874,6 @@
                         break;
                 }
             });
-
-            // Also ensure we can play audio-only files with video element (works naturally)
         });
     </script>
 </body>
